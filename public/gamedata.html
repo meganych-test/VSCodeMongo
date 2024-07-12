@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Game Data - Hamster Inc</title>
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background-color: #333;
+            color: #fff;
+        }
+        .container {
+            background-color: #444;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            width: 90%;
+            max-width: 1000px;
+            margin: 20px 0;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 24px;
+        }
+        .main-data {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+        .data-item {
+            background-color: #555;
+            padding: 10px;
+            border-radius: 10px;
+            text-align: left;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+        .data-item span {
+            font-weight: bold;
+        }
+        @media (max-width: 600px) {
+            .main-data {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Hamster Inc Game Data</h1>
+        </div>
+        <div class="main-data">
+            <div class="data-item">
+                <span>Initial Pool Size:</span> 21000000
+            </div>
+            <div class="data-item">
+                <span>Pool Now:</span> 19000000
+            </div>
+            <div class="data-item">
+                <span>Registered Players:</span> 215
+            </div>
+            <div class="data-item">
+                <span>Total Tap Game Clicks:</span> TapGameClicks
+            </div>
+        </div>
+    </div>
+</body>
+</html>

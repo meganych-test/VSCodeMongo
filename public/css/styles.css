@@ -1,0 +1,61 @@
+document.addEventListener("DOMContentLoaded", function() {
+    const playerCardsContainer = document.getElementById('playerCards');
+
+    const playersData = [
+        {
+            fullName: 'FullName',
+            userName: 'UserName1',
+            telegramID: 'TelegramID',
+            registeredDate: '24 June 2023',
+            daysPlaying: 15,
+            referredBy: 'TelegramID',
+            playerReferrals: 34,
+            walletAddress: 'wallet address',
+            tapGameBalance: 'TapGameBalance',
+            tapGameLevel: 'TapGameLevel',
+            autoGameBalance: 'AutoGameBalance',
+            autoPointsLevel: 'AutopointsLevel',
+            referralEarnings: 'ReferralEarnings',
+            referralsLevel: 'ReferralsLevel',
+            totalBalance: 'TotalBalance'
+        },
+        // Add more player objects here
+    ];
+
+    playersData.forEach(player => {
+        const playerCard = document.createElement('div');
+        playerCard.className = 'player-card';
+
+        playerCard.innerHTML = `
+            <div class="player-card-header">
+                <h2>${player.fullName} | ${player.userName}</h2>
+                <span style="color: green;">Connected status</span>
+            </div>
+            <div class="player-card-body">
+                <div class="player-info">
+                    <p>${player.telegramID} | ${player.userName}</p>
+                    <p>Registered on ${player.registeredDate} | Days playing ${player.daysPlaying}</p>
+                    <p>Referred by: ${player.referredBy} | Player referrals: ${player.playerReferrals} - <a href="#">see referrals</a></p>
+                    <p>Player WEB3 wallet: ${player.walletAddress}</p>
+                </div>
+                <div class="player-info">
+                    <p>Tap Game Balance: ${player.tapGameBalance}</p>
+                    <p>Tap Game Level: ${player.tapGameLevel}</p>
+                    <p>Auto Game Balance: ${player.autoGameBalance}</p>
+                    <p>Auto Points Level: ${player.autoPointsLevel}</p>
+                    <p>Referral Earnings: ${player.referralEarnings}</p>
+                    <p>Referrals Level: ${player.referralsLevel}</p>
+                    <p>Player balance: ${player.totalBalance}</p>
+                    <p>Web3 withdrawals requests</p>
+                </div>
+            </div>
+            <div class="player-actions">
+                <button>Edit</button>
+                <button>Block</button>
+                <button>Delete</button>
+            </div>
+        `;
+
+        playerCardsContainer.appendChild(playerCard);
+    });
+});

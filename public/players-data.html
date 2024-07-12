@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Player Data - Hamster Inc</title>
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background-color: #333;
+            color: #fff;
+        }
+        .container {
+            background-color: #444;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            width: 90%;
+            max-width: 1000px;
+            margin: 20px 0;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 24px;
+        }
+        .button {
+            padding: 10px 20px;
+            font-size: 18px;
+            color: white;
+            background-color: #007BFF;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            text-decoration: none;
+            transition: background-color 0.3s;
+        }
+        .button:hover {
+            background-color: #0056b3;
+        }
+        .main-data {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .data-item {
+            background-color: #555;
+            padding: 10px;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+        .player-card {
+            background-color: #555;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+            cursor: pointer;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+        .summary {
+            grid-column: span 2;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .circle-dots {
+            display: flex;
+            gap: 5px;
+        }
+        .circle-dots span {
+            display: block;
+            width: 10px;
+            height: 10px;
+            background-color: #fff;
+            border-radius: 50%;
+        }
+        .actions {
+            grid-column: span 2;
+            text-align: center;
+        }
+        .actions a {
+            color: #007BFF;
+            text-decoration: none;
+            margin-right: 10px;
+            transition: color 0.3s;
+        }
+        .actions a:hover {
+            color: #0056b3;
+        }
+        @media (max-width: 600px) {
+            .main-data, .player-card {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Hamster Inc Data</h1>
+            <button class="button" onclick="addNewPlayer()">Add new player</button>
+        </div>
+        <div class="main-data">
+            <div class="data-item">
+                <strong>Initial Pool Size</strong><br>
+                21000000
+            </div>
+            <div class="data-item">
+                <strong>Pool Now</strong><br>
+                19000000
+            </div>
+            <div class="data-item">
+                <strong>Registered Players</strong><br>
+                215
+            </div>
+            <div class="data-item">
+                <strong>Total Tap Game Clicks</strong><br>
+                TapGameClicks
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <h2>Player Data</h2>
+        <div id="playerCardsContainer"></div>
+    </div>
+
+    <script>
+        const players = [
+            {
+                telegramID: "UserName1",
+                registrationDate: "24 June 2023",
+                daysPlaying: 15,
+                referrals: 34,
+                wallet: "wallet address",
+                tapGameBalance: "TapGameBalance",
+                autoGameBalance: "AutoGameBalance",
+                referralEarnings: "ReferralEarnings",
+                totalBalance: "TotalBalance",
+                connected: true
+            },
+            // Add more player objects here
+        ];
+
+        const playerCardsContainer = document.getElementById('playerCardsContainer');
+
+        players.forEach(player => {
+            const playerCard = document.createElement('div');
+            playerCard.className = 'player-card';
+            playerCard.innerHTML = `
+                <div class="summary">
+                    ${player.telegramID} | ${player.connected ? '<span style="color: green;">●</span>' : '<span style="color: red;">●</span>'}
+                    <div class="circle-dots">
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                    </div>
+                </div>
+                <div>Registered: ${player.registrationDate}</div>
+                <div>Days Playing: ${player.daysPlaying}</div>
+                <div>Referrals: ${player.referrals} - <a href="#">see referrals</a></div>
+                <div>Web3 Wallet: ${player.wallet}</div>
+                <div>Tap Game Balance: ${player.tapGameBalance}</div>
+                <div>Auto Game Balance: ${player.autoGameBalance}</div>
+                <div>Referral Earnings: ${player.referralEarnings}</div>
+                <div>Total Balance: ${player.totalBalance}</div>
+                <div class="actions">
+                    <span style="color: ${player.connected ? 'green' : 'red'};">${player.connected ? 'Connected' : 'Disconnected'}</span> |
+                    <a href="#">Edit</a> |
+                    <a href="#">Block</a> |
+                    <a href="#">Delete</a>
+                </div>
+            `;
+
+            playerCardsContainer.appendChild(playerCard);
+        });
+
+        function addNewPlayer() {
+            // Function to add a new player (for demonstration purposes)
+            alert("Add new player functionality to be implemented.");
+        }
+    </script>
+</body>
+</html>
