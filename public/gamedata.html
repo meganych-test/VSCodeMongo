@@ -3,56 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Game Data - Hamster Inc</title>
+    <title>Hamster Inc Game Data</title>
     <style>
-        body {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            margin: 0;
-            font-family: Arial, sans-serif;
-            background-color: #333;
-            color: #fff;
-        }
-        .container {
-            background-color: #444;
-            padding: 20px;
-            border-radius: 15px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-            width: 90%;
-            max-width: 1000px;
-            margin: 20px 0;
-        }
-        .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-        }
-        .header h1 {
-            margin: 0;
-            font-size: 24px;
-        }
-        .main-data {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 10px;
-        }
-        .data-item {
-            background-color: #555;
-            padding: 10px;
-            border-radius: 10px;
-            text-align: left;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-        }
-        .data-item span {
-            font-weight: bold;
-        }
-        @media (max-width: 600px) {
-            .main-data {
-                grid-template-columns: 1fr;
-            }
-        }
+        body { font-family: Arial, sans-serif; }
+        .container { max-width: 800px; margin: 0 auto; padding: 20px; }
+        .header { text-align: center; }
+        .main-data { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .data-item { background-color: #f0f0f0; padding: 15px; border-radius: 5px; }
     </style>
 </head>
 <body>
@@ -60,20 +17,45 @@
         <div class="header">
             <h1>Hamster Inc Game Data</h1>
         </div>
+
         <div class="main-data">
             <div class="data-item">
-                <span>Initial Pool Size:</span> 21000000
+                Initial Pool Size: <span id="initialPoolSize">Loading...</span>
             </div>
             <div class="data-item">
-                <span>Pool Now:</span> 19000000
+                Pool Now: <span id="poolNow">Loading...</span>
             </div>
             <div class="data-item">
-                <span>Registered Players:</span> 215
+                Registered Players: <span id="registeredPlayers">Loading...</span>
             </div>
             <div class="data-item">
-                <span>Total Tap Game Clicks:</span> TapGameClicks
+                Total Tap Game Clicks: <span id="totalTapGameClicks">Loading...</span>
             </div>
         </div>
     </div>
+
+    <script>
+    fetch('/api/players-data')
+      .then(response => {
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return response.json();
+      })
+      .then(data => {
+        console.log('Received data:', data);  // Log the received data
+        document.getElementById('initialPoolSize').textContent = data.initialPoolSize;
+        document.getElementById('poolNow').textContent = data.poolNow;
+        document.getElementById('registeredPlayers').textContent = data.totalPlayers;
+        const totalClicks = data.players.reduce((sum, player) => sum + (player.tapGameClicks || 0), 0);
+        document.getElementById('totalTapGameClicks').textContent = totalClicks;
+      })
+      .catch(error => {
+        console.error('Error fetching game data:', error);
+        document.querySelectorAll('.data-item span').forEach(span => {
+          span.textContent = 'Error loading data';
+        });
+      });
+    </script>
 </body>
 </html>

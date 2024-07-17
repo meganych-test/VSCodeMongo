@@ -1,99 +1,96 @@
-require('dotenv').config();
 const express = require('express');
-const mongoose = require('mongoose');
+const { MongoClient } = require('mongodb');
+const dotenv = require('dotenv');
 const cors = require('cors');
-const helmet = require('helmet');
-const path = require('path');
-const Player = require('./models/Users');
-const fs = require('fs').promises;
+
+dotenv.config();
 
 const app = express();
 const port = process.env.PORT || 3001;
 
-// Middleware
+app.use(cors());
 app.use(express.json());
-app.use(cors({
-  origin: ['http://localhost:3000', 'https://c1c0-213-111-76-158.ngrok-free.app'],
-  credentials: true
-}));
-app.use(helmet());
+app.use(express.urlencoded({ extended: true }));
 
-// Serve static files from the 'public' directory
-app.use(express.static(path.join(__dirname, 'public')));
+const uri = process.env.MONGODB_URI;
+const client = new MongoClient(uri);
 
-// Trust proxy (necessary for secure cookies via ngrok)
-app.set('trust proxy', 1);
-
-// Connect to MongoDB
-mongoose.connect(process.env.MONGODB_URI)
-  .then(() => console.log('Connected to MongoDB'))
-  .catch(err => console.error('Could not connect to MongoDB:', err));
-
-// Routes
-app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'index.html'));
-});
-
-app.get('/players-data', async (req, res) => {
+async function connectToDatabase() {
   try {
-    const htmlTemplate = await fs.readFile(path.join(__dirname, 'public', 'players-data.html'), 'utf-8');
-    const players = await Player.find();
-    const totalPlayers = await Player.countDocuments();
-    const pointPool = process.env.INITIAL_POINT_POOL || 21000000;
-    const poolNow = process.env.CURRENT_POINT_POOL || 19000000;
-
-    // Generate table headers dynamically
-    const schema = Player.schema.obj;
-    const tableHeaders = Object.keys(schema)
-      .map(field => `<th>${field}</th>`)
-      .join('');
-
-    // Generate table rows dynamically
-    const tableRows = players.map(player => `
-      <tr>
-        ${Object.keys(schema).map(field => `<td>${player[field]}</td>`).join('')}
-      </tr>
-    `).join('');
-
-    // Replace placeholders in the HTML template
-    let dynamicHtml = htmlTemplate
-      .replace('[INITIAL_POOL]', pointPool)
-      .replace('[CURRENT_POOL]', poolNow)
-      .replace('[TOTAL_PLAYERS]', totalPlayers)
-      .replace('<!-- TABLE_HEADERS -->', tableHeaders)
-      .replace('<!-- TABLE_ROWS -->', tableRows);
-
-    res.send(dynamicHtml);
+    await client.connect();
+    console.log('Connected to MongoDB');
   } catch (error) {
-    console.error('Error rendering players-data:', error);
-    res.status(500).send('Error rendering players-data');
+    console.error('Error connecting to MongoDB:', error);
+    process.exit(1);
+  }
+}
+
+app.post('/api/register', async (req, res) => {
+  try {
+    const playerData = req.body;
+
+    console.log('Received player data:', playerData);
+
+    if (!playerData.id) {
+      return res.status(400).json({ message: 'Player ID is required' });
+    }
+
+    const database = client.db(process.env.MONGODB_DB_NAME || 'test'); // Ensure you have the correct database name
+    const players = database.collection('players');
+
+    // Check if player already exists
+    const existingPlayer = await players.findOne({ id: playerData.id });
+    if (existingPlayer) {
+      return res.status(400).json({ message: 'Player already registered' });
+    }
+
+    // Insert new player
+    const result = await players.insertOne(playerData);
+    res.status(201).json({ message: 'Player registered successfully', playerId: result.insertedId });
+  } catch (error) {
+    console.error('Error registering player:', error);
+    res.status(500).json({ message: 'Error registering player' });
   }
 });
 
-app.get('/api/players-data', async (req, res) => {
+app.get('/api/players', async (req, res) => {
+  console.log('Received request for /api/players');
   try {
-    const players = await Player.find();
-    const totalPlayers = await Player.countDocuments();
-    const pointPool = process.env.INITIAL_POINT_POOL || 21000000;
-    const poolNow = process.env.CURRENT_POINT_POOL || 19000000;
+    const database = client.db(process.env.MONGODB_DB_NAME || 'test'); // Ensure you have the correct database name
+    const players = database.collection('players');
 
-    res.json({ players, totalPlayers, pointPool, poolNow });
+    const allPlayers = await players.find({}).toArray();
+    console.log(`Found ${allPlayers.length} players`);
+    res.status(200).json(allPlayers);
   } catch (error) {
     console.error('Error fetching players:', error);
-    res.status(500).json({ error: 'Error fetching players' });
+    res.status(500).json({ message: 'Error fetching players' });
   }
 });
 
-// Handle favicon.ico request
-app.get('/favicon.ico', (req, res) => {
-  res.status(204).end(); // No content
+app.get('/api/referrals/count/:playerId', async (req, res) => {
+  try {
+    const playerId = req.params.playerId;
+    const count = await players.countDocuments({ referralId: playerId });
+    res.json({ count });
+  } catch (error) {
+    console.error('Error fetching referral count:', error);
+    res.status(500).json({ message: 'Error fetching referral count' });
+  }
 });
 
-// Catch-all route for any unhandled routes
+// Catch-all route for debugging
 app.use((req, res) => {
-  res.status(404).sendFile(path.join(__dirname, 'public', '404.html'));
+  console.log(`Received request for ${req.path}`);
+  res.status(404).send('Not found');
 });
 
-app.listen(port, '0.0.0.0', () => {
-  console.log(`Server running on port ${port}`);
+app.get('/', (req, res) => {
+  res.send('Server is running');
+});
+
+connectToDatabase().then(() => {
+  app.listen(port, () => {
+    console.log(`Server running on port ${port}`);
+  });
 });
