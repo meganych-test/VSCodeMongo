@@ -8,7 +8,9 @@ dotenv.config();
 const app = express();
 const port = process.env.PORT || 3001;
 
-app.use(cors());
+app.use(cors({
+  origin: ['https://meganych-test.github.io', 'https://hammongodb-fa6f3dfbc43b.herokuapp.com']
+}));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -26,6 +28,7 @@ const client = new MongoClient(uri, {
   useUnifiedTopology: true,
   ssl: true,
   tls: true,
+  tlsAllowInvalidCertificates: true
 });
 
 let database;
@@ -71,6 +74,7 @@ app.post('/api/register', async (req, res) => {
 app.get('/api/players', async (req, res) => {
   try {
     const allPlayers = await playersCollection.find({}).toArray();
+    console.log(`Found ${allPlayers.length} players`);
     res.status(200).json(allPlayers);
   } catch (error) {
     console.error('Error fetching players:', error);
@@ -81,10 +85,13 @@ app.get('/api/players', async (req, res) => {
 app.get('/api/players/:playerId', async (req, res) => {
   try {
     const playerId = req.params.playerId;
+    console.log(`Fetching player with ID: ${playerId}`);
     const player = await playersCollection.findOne({ id: playerId });
     if (player) {
+      console.log(`Player found:`, player);
       res.status(200).json(player);
     } else {
+      console.log(`Player not found with ID: ${playerId}`);
       res.status(404).json({ message: 'Player not found' });
     }
   } catch (error) {
@@ -96,7 +103,9 @@ app.get('/api/players/:playerId', async (req, res) => {
 app.get('/api/referrals/count/:playerId', async (req, res) => {
   try {
     const playerId = req.params.playerId;
+    console.log(`Fetching referral count for player ID: ${playerId}`);
     const count = await playersCollection.countDocuments({ referralId: playerId });
+    console.log(`Referral count for player ${playerId}: ${count}`);
     res.json({ count });
   } catch (error) {
     console.error('Error fetching referral count:', error);
@@ -112,6 +121,7 @@ async function startServer() {
     });
   } catch (error) {
     console.error('Failed to start server:', error);
+    setTimeout(startServer, 5000); // Retry after 5 seconds
   }
 }
 
