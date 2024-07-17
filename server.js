@@ -13,15 +13,18 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 const uri = process.env.MONGODB_URI;
-const client = new MongoClient(uri);
+const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true });
+
+let database;
 
 async function connectToDatabase() {
   try {
     await client.connect();
     console.log('Connected to MongoDB');
+    database = client.db(process.env.MONGODB_DB_NAME || 'test');
   } catch (error) {
     console.error('Error connecting to MongoDB:', error);
-    process.exit(1);
+    throw error;
   }
 }
 
@@ -35,7 +38,6 @@ app.post('/api/register', async (req, res) => {
       return res.status(400).json({ message: 'Player ID is required' });
     }
 
-    const database = client.db(process.env.MONGODB_DB_NAME || 'test'); // Ensure you have the correct database name
     const players = database.collection('players');
 
     // Check if player already exists
@@ -56,7 +58,6 @@ app.post('/api/register', async (req, res) => {
 app.get('/api/players', async (req, res) => {
   console.log('Received request for /api/players');
   try {
-    const database = client.db(process.env.MONGODB_DB_NAME || 'test'); // Ensure you have the correct database name
     const players = database.collection('players');
 
     const allPlayers = await players.find({}).toArray();
@@ -68,9 +69,27 @@ app.get('/api/players', async (req, res) => {
   }
 });
 
+app.get('/api/players/:playerId', async (req, res) => {
+  try {
+    const playerId = req.params.playerId;
+    const players = database.collection('players');
+
+    const player = await players.findOne({ id: playerId });
+    if (player) {
+      res.status(200).json(player);
+    } else {
+      res.status(404).json({ message: 'Player not found' });
+    }
+  } catch (error) {
+    console.error('Error fetching player:', error);
+    res.status(500).json({ message: 'Error fetching player' });
+  }
+});
+
 app.get('/api/referrals/count/:playerId', async (req, res) => {
   try {
     const playerId = req.params.playerId;
+    const players = database.collection('players');
     const count = await players.countDocuments({ referralId: playerId });
     res.json({ count });
   } catch (error) {
@@ -89,8 +108,16 @@ app.get('/', (req, res) => {
   res.send('Server is running');
 });
 
-connectToDatabase().then(() => {
-  app.listen(port, () => {
-    console.log(`Server running on port ${port}`);
-  });
-});
+async function startServer() {
+  try {
+    await connectToDatabase();
+    app.listen(port, () => {
+      console.log(`Server running on port ${port}`);
+    });
+  } catch (error) {
+    console.error('Failed to start server:', error);
+    process.exit(1);
+  }
+}
+
+startServer();
