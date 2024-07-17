@@ -2,7 +2,7 @@ const express = require('express');
 const { MongoClient } = require('mongodb');
 const dotenv = require('dotenv');
 const cors = require('cors');
-const axios = require('axios'); // Add this line to import axios
+const axios = require('axios');
 
 dotenv.config();
 
@@ -114,7 +114,6 @@ app.get('/api/referrals/count/:playerId', async (req, res) => {
   }
 });
 
-// New endpoint for fetching Telegram user data
 app.get('/api/telegram/user/:userId', async (req, res) => {
   const userId = req.params.userId;
   const botToken = process.env.BOT_TOKEN;
@@ -125,13 +124,26 @@ app.get('/api/telegram/user/:userId', async (req, res) => {
   }
 
   try {
-    const url = `https://api.telegram.org/bot${botToken}/getChat`;
-    console.log(`Fetching Telegram data for user ${userId}`);
-    const response = await axios.get(url, { params: { chat_id: userId } });
-    res.json(response.data.result);
+    let userData;
+    if (userId.includes('-test-')) {
+      // This is a test user, return mock data
+      userData = {
+        id: userId,
+        first_name: "Test",
+        last_name: "User",
+        username: "testuser"
+      };
+    } else {
+      // This is a real Telegram user, fetch data from Telegram API
+      const url = `https://api.telegram.org/bot${botToken}/getChat`;
+      const response = await axios.get(url, { params: { chat_id: userId } });
+      userData = response.data.result;
+    }
+    console.log(`User data for ${userId}:`, userData);
+    res.json(userData);
   } catch (error) {
-    console.error('Error fetching Telegram user data:', error.message);
-    res.status(500).json({ message: 'Error fetching Telegram user data' });
+    console.error('Error fetching user data:', error.message);
+    res.status(500).json({ message: 'Error fetching user data', error: error.message });
   }
 });
 
