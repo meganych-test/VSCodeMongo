@@ -1,4 +1,9 @@
 {
+  "engines": {
+    "node": "18.x"
+  },
+}
+{
   "name": "hamster-inc-player-data",
   "version": "1.0.0",
   "description": "Player data display for Hamster Inc",
