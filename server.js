@@ -28,12 +28,14 @@ const client = new MongoClient(uri, {
 });
 
 let database;
+let playersCollection;
 
 async function connectToDatabase() {
   try {
     await client.connect();
     console.log('Connected to MongoDB');
-    database = client.db(process.env.MONGODB_DB_NAME || 'test');
+    database = client.db(process.env.MONGODB_DB_NAME || 'ProjectH');
+    playersCollection = database.collection('PlayersData');
   } catch (error) {
     console.error('Error connecting to MongoDB:', error);
     throw error;
@@ -50,16 +52,14 @@ app.post('/api/register', async (req, res) => {
       return res.status(400).json({ message: 'Player ID is required' });
     }
 
-    const players = database.collection('players');
-
     // Check if player already exists
-    const existingPlayer = await players.findOne({ id: playerData.id });
+    const existingPlayer = await playersCollection.findOne({ id: playerData.id });
     if (existingPlayer) {
       return res.status(400).json({ message: 'Player already registered' });
     }
 
     // Insert new player
-    const result = await players.insertOne(playerData);
+    const result = await playersCollection.insertOne(playerData);
     res.status(201).json({ message: 'Player registered successfully', playerId: result.insertedId });
   } catch (error) {
     console.error('Error registering player:', error);
@@ -70,9 +70,7 @@ app.post('/api/register', async (req, res) => {
 app.get('/api/players', async (req, res) => {
   console.log('Received request for /api/players');
   try {
-    const players = database.collection('players');
-
-    const allPlayers = await players.find({}).toArray();
+    const allPlayers = await playersCollection.find({}).toArray();
     console.log(`Found ${allPlayers.length} players`);
     res.status(200).json(allPlayers);
   } catch (error) {
@@ -84,9 +82,7 @@ app.get('/api/players', async (req, res) => {
 app.get('/api/players/:playerId', async (req, res) => {
   try {
     const playerId = req.params.playerId;
-    const players = database.collection('players');
-
-    const player = await players.findOne({ id: playerId });
+    const player = await playersCollection.findOne({ id: playerId });
     if (player) {
       res.status(200).json(player);
     } else {
@@ -101,8 +97,7 @@ app.get('/api/players/:playerId', async (req, res) => {
 app.get('/api/referrals/count/:playerId', async (req, res) => {
   try {
     const playerId = req.params.playerId;
-    const players = database.collection('players');
-    const count = await players.countDocuments({ referralId: playerId });
+    const count = await playersCollection.countDocuments({ referralId: playerId });
     res.json({ count });
   } catch (error) {
     console.error('Error fetching referral count:', error);
