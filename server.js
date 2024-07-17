@@ -37,6 +37,8 @@ let playersCollection;
 async function connectToDatabase() {
   try {
     console.log('Attempting to connect to MongoDB...');
+    console.log('MongoDB URI:', process.env.MONGODB_URI.replace(/:[^:]*@/, ':****@'));
+    console.log('Database Name:', process.env.MONGODB_DB_NAME);
     await client.connect();
     console.log('Connected to MongoDB');
     database = client.db(process.env.MONGODB_DB_NAME || 'ProjectH');
@@ -51,18 +53,14 @@ async function connectToDatabase() {
 app.post('/api/register', async (req, res) => {
   try {
     const playerData = req.body;
-
     console.log('Received player data:', playerData);
-
     if (!playerData.id) {
       return res.status(400).json({ message: 'Player ID is required' });
     }
-
     const existingPlayer = await playersCollection.findOne({ id: playerData.id });
     if (existingPlayer) {
       return res.status(400).json({ message: 'Player already registered' });
     }
-
     const result = await playersCollection.insertOne(playerData);
     res.status(201).json({ message: 'Player registered successfully', playerId: result.insertedId });
   } catch (error) {
@@ -86,10 +84,13 @@ app.get('/api/players', async (req, res) => {
 app.get('/api/players/:playerId', async (req, res) => {
   try {
     const playerId = req.params.playerId;
+    console.log(`Received request for player with ID: ${playerId}`);
     const player = await playersCollection.findOne({ id: playerId });
     if (player) {
+      console.log(`Found player: ${JSON.stringify(player)}`);
       res.status(200).json(player);
     } else {
+      console.log(`Player not found with ID: ${playerId}`);
       res.status(404).json({ message: 'Player not found' });
     }
   } catch (error) {
@@ -101,7 +102,9 @@ app.get('/api/players/:playerId', async (req, res) => {
 app.get('/api/referrals/count/:playerId', async (req, res) => {
   try {
     const playerId = req.params.playerId;
+    console.log(`Received request for referral count of player with ID: ${playerId}`);
     const count = await playersCollection.countDocuments({ referralId: playerId });
+    console.log(`Referral count for player ${playerId}: ${count}`);
     res.json({ count });
   } catch (error) {
     console.error('Error fetching referral count:', error);
@@ -110,6 +113,7 @@ app.get('/api/referrals/count/:playerId', async (req, res) => {
 });
 
 app.get('/', (req, res) => {
+  console.log('Received request for root path');
   res.send('Server is running');
 });
 
