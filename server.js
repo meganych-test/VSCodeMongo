@@ -13,7 +13,19 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 const uri = process.env.MONGODB_URI;
-const client = new MongoClient(uri);
+
+if (!uri) {
+  console.error('MONGODB_URI is not set. Please set this environment variable.');
+  process.exit(1);
+}
+
+console.log('MongoDB URI:', uri.replace(/:[^:]*@/, ':****@')); // Log the URI with password hidden
+
+const client = new MongoClient(uri, {
+  ssl: true,
+  tls: true,
+  tlsInsecure: false
+});
 
 let database;
 
@@ -96,12 +108,6 @@ app.get('/api/referrals/count/:playerId', async (req, res) => {
     console.error('Error fetching referral count:', error);
     res.status(500).json({ message: 'Error fetching referral count' });
   }
-});
-
-// Catch-all route for debugging
-app.use((req, res) => {
-  console.log(`Received request for ${req.path}`);
-  res.status(404).send('Not found');
 });
 
 app.get('/', (req, res) => {
