@@ -1,3 +1,7 @@
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('Unhandled Rejection at:', promise, 'reason:', reason);
+});
+
 const express = require('express');
 const { MongoClient } = require('mongodb');
 const dotenv = require('dotenv');
@@ -32,10 +36,12 @@ let playersCollection;
 
 async function connectToDatabase() {
   try {
+    console.log('Attempting to connect to MongoDB...');
     await client.connect();
     console.log('Connected to MongoDB');
     database = client.db(process.env.MONGODB_DB_NAME || 'ProjectH');
     playersCollection = database.collection('PlayersData');
+    console.log('Database and collection set up successfully');
   } catch (error) {
     console.error('Error connecting to MongoDB:', error);
     throw error;
@@ -52,13 +58,11 @@ app.post('/api/register', async (req, res) => {
       return res.status(400).json({ message: 'Player ID is required' });
     }
 
-    // Check if player already exists
     const existingPlayer = await playersCollection.findOne({ id: playerData.id });
     if (existingPlayer) {
       return res.status(400).json({ message: 'Player already registered' });
     }
 
-    // Insert new player
     const result = await playersCollection.insertOne(playerData);
     res.status(201).json({ message: 'Player registered successfully', playerId: result.insertedId });
   } catch (error) {
@@ -117,7 +121,8 @@ async function startServer() {
     });
   } catch (error) {
     console.error('Failed to start server:', error);
-    process.exit(1);
+    // Instead of exiting, we'll keep the process running to see the error in the logs
+    // process.exit(1);
   }
 }
 
